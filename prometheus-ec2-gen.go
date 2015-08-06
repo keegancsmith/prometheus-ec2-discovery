@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"text/template"
@@ -11,6 +12,7 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+// TargetGroup is a collection of related hosts that prometheus monitors
 type TargetGroup struct {
 	Labels  map[string]string
 	Targets []string
@@ -32,6 +34,11 @@ func main() {
 	resp, err := e.Instances(nil, filter)
 	instances := flattenReservations(resp.Reservations)
 
+	targetGroups := groupByTags(instances, tags)
+	renderConfig(os.Stdout, targetGroups)
+}
+
+func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGroup {
 	targetGroups := make(map[string]*TargetGroup)
 
 	for _, instance := range instances {
@@ -64,6 +71,10 @@ func main() {
 		targetGroup.Targets = append(targetGroup.Targets, target)
 	}
 
+	return targetGroups
+}
+
+func renderConfig(wr io.Writer, targetGroups map[string]*TargetGroup) {
 	const conf = `
 global:
   scrape_interval:     15s
@@ -101,7 +112,7 @@ scrape_configs:
 	}
 
 	t := template.Must(template.New("prometheus.yml").Funcs(funcMap).Parse(conf))
-	t.Execute(os.Stdout, templateVars)
+	t.Execute(wr, templateVars)
 }
 
 func getTag(instance ec2.Instance, key string) string {
