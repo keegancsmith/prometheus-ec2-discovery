@@ -14,8 +14,12 @@ set +e
 if [[ $(shasum - < ${config_path}) != $(shasum - < ${config_path_new}) ]]; then
     mv ${config_path} ${config_path}.bak
     mv ${config_path_new} ${config_path}
-    logger -s -p info -t prometheus-update-config.sh "Updated ${config_path}, reloading prometheus..."
-    pkill -SIGHUP prometheus
+    (
+        set -e
+        echo "Updated ${config_path}, reloading prometheus..."
+        pkill -SIGHUP prometheus
+        set +e
+    ) 2>&1 | logger -s -t prometheus-update-config.sh
 else
     rm ${config_path_new}
 fi
