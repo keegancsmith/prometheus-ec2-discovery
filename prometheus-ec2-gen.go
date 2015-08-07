@@ -2,14 +2,22 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
+)
+
+var (
+	tags   []string
+	region aws.Region
+	port   int
 )
 
 // TargetGroup is a collection of related hosts that prometheus monitors
@@ -19,23 +27,38 @@ type TargetGroup struct {
 }
 
 func main() {
-	tags := []string{"Type", "Deployment", "Version"}
-
-	auth, err := aws.EnvAuth()
-	if err != nil {
-		log.Fatal(err)
-	}
+	initFlags()
 
 	filter := ec2.NewFilter()
 	for _, t := range tags {
 		filter.Add("tag-key", t)
 	}
-	e := ec2.New(auth, aws.USWest2)
-	resp, err := e.Instances(nil, filter)
-	instances := flattenReservations(resp.Reservations)
 
+	auth, err := aws.EnvAuth()
+	if err != nil {
+		log.Fatal(err)
+	}
+	e := ec2.New(auth, region)
+	resp, err := e.Instances(nil, filter)
+
+	instances := flattenReservations(resp.Reservations)
 	targetGroups := groupByTags(instances, tags)
 	renderConfig(os.Stdout, targetGroups)
+}
+
+func initFlags() {
+	var (
+		tagsRaw   string
+		regionRaw string
+	)
+
+	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`)")
+	flag.StringVar(&regionRaw, "region", "us-west-2", "AWS region to query")
+	flag.IntVar(&port, "port", 80, "Port that is exposing /metrics")
+
+	flag.Parse()
+	tags = strings.Split(tagsRaw, ",")
+	region = aws.Regions[regionRaw]
 }
 
 func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGroup {
@@ -67,7 +90,7 @@ func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGrou
 			targetGroups[key] = targetGroup
 		}
 
-		target := fmt.Sprintf("%s:3000", instance.PrivateIpAddress)
+		target := fmt.Sprintf("%s:%d", instance.PrivateIpAddress, port)
 		targetGroup.Targets = append(targetGroup.Targets, target)
 	}
 
