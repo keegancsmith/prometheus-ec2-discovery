@@ -3,7 +3,7 @@
 # Generates a new prometheus.yml and reloads prometheus if the contents
 # change. Intended to be run from a cronjob
 
-gen_cmd=${PROMETHEUS_CONFIG_GEN:=prometheus-ec2-gen}
+gen_cmd="$@"
 config_path=${PROMETHEUS_CONFIG_PATH:=prometheus.yml}
 config_path_new=${config_path}.prospective
 
