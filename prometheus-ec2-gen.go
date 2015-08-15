@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"sort"
@@ -14,6 +15,7 @@ import (
 )
 
 var (
+	dest   string
 	tags   []string
 	region aws.Region
 	port   int
@@ -46,7 +48,14 @@ func main() {
 	instances := flattenReservations(resp.Reservations)
 	targetGroups := groupByTags(instances, tags)
 	b := marshalTargetGroups(targetGroups)
-	os.Stdout.Write(b)
+	if dest == "-" {
+		_, err = os.Stdout.Write(b)
+	} else {
+		err = atomicWriteFile(dest, b, ".new")
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func initFlags() {
@@ -55,6 +64,7 @@ func initFlags() {
 		regionRaw string
 	)
 
+	flag.StringVar(&dest, "dest", "-", "File to write the target group JSON. (e.g. `tgroups/target_groups.json`)")
 	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`)")
 	flag.StringVar(&regionRaw, "region", "us-west-2", "AWS region to query")
 	flag.IntVar(&port, "port", 80, "Port that is exposing /metrics")
@@ -117,6 +127,18 @@ func marshalTargetGroups(targetGroups map[string]*TargetGroup) []byte {
 		log.Fatal(err)
 	}
 	return b
+}
+
+func atomicWriteFile(filename string, data []byte, tmpSuffix string) error {
+	err := ioutil.WriteFile(filename+tmpSuffix, data, 0644)
+	if err != nil {
+		return err
+	}
+	err = os.Rename(filename+tmpSuffix, filename)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getTag(instance ec2.Instance, key string) string {

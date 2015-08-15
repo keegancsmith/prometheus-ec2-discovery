@@ -1,2 +1,2 @@
-prometheus.yml*
+*.json
 *.test
