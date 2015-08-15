@@ -39,6 +39,9 @@ func main() {
 	}
 	e := ec2.New(auth, region)
 	resp, err := e.Instances(nil, filter)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	instances := flattenReservations(resp.Reservations)
 	targetGroups := groupByTags(instances, tags)
