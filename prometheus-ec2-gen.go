@@ -44,8 +44,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	instances := flattenReservations(resp.Reservations)
+
+	if len(tags) == 0 {
+		tags = allTagKeys(instances)
+	}
+
 	targetGroups := groupByTags(instances, tags)
 	b := marshalTargetGroups(targetGroups)
 	if dest == "-" {
@@ -72,6 +76,10 @@ func initFlags() {
 	flag.Parse()
 	tags = strings.Split(tagsRaw, ",")
 	region = aws.Regions[regionRaw]
+
+	if tags[0] == "" && len(tags) == 1 {
+		tags = []string{}
+	}
 }
 
 func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGroup {
@@ -156,4 +164,19 @@ func flattenReservations(reservations []ec2.Reservation) []ec2.Instance {
 		instances = append(instances, r.Instances...)
 	}
 	return instances
+}
+
+func allTagKeys(instances []ec2.Instance) []string {
+	tagSet := map[string]struct{}{}
+	for _, instance := range instances {
+		for _, t := range instance.Tags {
+			tagSet[t.Key] = struct{}{}
+		}
+	}
+	tags := []string{}
+	for tag, _ := range tagSet {
+		tags = append(tags, tag)
+	}
+	sort.Strings(tags)
+	return tags
 }

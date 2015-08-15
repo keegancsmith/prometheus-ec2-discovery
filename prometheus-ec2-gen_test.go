@@ -1,415 +1,416 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/mitchellh/goamz/ec2"
 )
 
-func TestGroupByAndRender(t *testing.T) {
-	instances := []ec2.Instance{
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "next-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "next-production",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-			},
-			PrivateIpAddress: "172.22.2.183",
+var instances []ec2.Instance = []ec2.Instance{
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 48,
-				Name: "terminated",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-frontend",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "next-production-0.6.16-work",
 			},
-			PrivateIpAddress: "",
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "next-production",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "next-production-0.6.16-frontend",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "next-production",
-				},
-			},
-			PrivateIpAddress: "172.22.2.57",
+		PrivateIpAddress: "172.22.2.183",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 48,
+			Name: "terminated",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-frontend",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "next-production",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "next-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
 			},
-			PrivateIpAddress: "172.22.1.121",
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-frontend",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-			},
-			PrivateIpAddress: "172.22.1.149",
+		PrivateIpAddress: "",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.18",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.18-frontend",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
 			},
-			PrivateIpAddress: "172.22.1.154",
+			ec2.Tag{
+				Key:   "Name",
+				Value: "next-production-0.6.16-frontend",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "next-production",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "next-production",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "next-production-0.6.16-frontend",
-				},
-			},
-			PrivateIpAddress: "172.22.1.89",
+		PrivateIpAddress: "172.22.2.57",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "next-production",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-frontend",
-				},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
 			},
-			PrivateIpAddress: "172.22.2.151",
+			ec2.Tag{
+				Key:   "Name",
+				Value: "next-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-			},
-			PrivateIpAddress: "172.22.2.245",
+		PrivateIpAddress: "172.22.1.121",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
 			},
-			PrivateIpAddress: "172.22.2.246",
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-frontend",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-			},
-			PrivateIpAddress: "172.22.2.247",
+		PrivateIpAddress: "172.22.1.149",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.18",
 			},
-			PrivateIpAddress: "172.22.2.248",
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.18-frontend",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-			},
-			PrivateIpAddress: "172.22.2.249",
+		PrivateIpAddress: "172.22.1.154",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
 			},
-			PrivateIpAddress: "172.22.1.64",
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "next-production",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "next-production-0.6.16-frontend",
+			},
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
-			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.16",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "work",
-				},
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.16-work",
-				},
-			},
-			PrivateIpAddress: "172.22.1.62",
+		PrivateIpAddress: "172.22.1.89",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
 		},
-		ec2.Instance{
-			State: ec2.InstanceState{
-				Code: 16,
-				Name: "running",
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
 			},
-			Tags: []ec2.Tag{
-				ec2.Tag{
-					Key:   "Name",
-					Value: "www-production-0.6.18-frontend",
-				},
-				ec2.Tag{
-					Key:   "Type",
-					Value: "frontend",
-				},
-				ec2.Tag{
-					Key:   "Version",
-					Value: "0.6.18",
-				},
-				ec2.Tag{
-					Key:   "Deployment",
-					Value: "www-production",
-				},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
 			},
-			PrivateIpAddress: "172.22.2.150",
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-frontend",
+			},
 		},
-	}
+		PrivateIpAddress: "172.22.2.151",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+		},
+		PrivateIpAddress: "172.22.2.245",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+		},
+		PrivateIpAddress: "172.22.2.246",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+		},
+		PrivateIpAddress: "172.22.2.247",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+		},
+		PrivateIpAddress: "172.22.2.248",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+		},
+		PrivateIpAddress: "172.22.2.249",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+		},
+		PrivateIpAddress: "172.22.1.64",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.16",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "work",
+			},
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.16-work",
+			},
+		},
+		PrivateIpAddress: "172.22.1.62",
+	},
+	ec2.Instance{
+		State: ec2.InstanceState{
+			Code: 16,
+			Name: "running",
+		},
+		Tags: []ec2.Tag{
+			ec2.Tag{
+				Key:   "Name",
+				Value: "www-production-0.6.18-frontend",
+			},
+			ec2.Tag{
+				Key:   "Type",
+				Value: "frontend",
+			},
+			ec2.Tag{
+				Key:   "Version",
+				Value: "0.6.18",
+			},
+			ec2.Tag{
+				Key:   "Deployment",
+				Value: "www-production",
+			},
+		},
+		PrivateIpAddress: "172.22.2.150",
+	},
+}
 
+func TestGroupByAndRender(t *testing.T) {
 	want := `[
   {
     "targets": [
@@ -477,5 +478,13 @@ func TestGroupByAndRender(t *testing.T) {
 	got := string(b)
 	if want != got {
 		t.Fatalf("Did not get the expected output\nwant: %#v\ngot: %#v", want, got)
+	}
+}
+
+func TestAllTagKeys(t *testing.T) {
+	want := []string{"Deployment", "Name", "Type", "Version"}
+	got := allTagKeys(instances)
+	if !reflect.DeepEqual(want, got) {
+		t.Fatalf("%#v != %#v", want, got)
 	}
 }
