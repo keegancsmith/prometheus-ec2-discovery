@@ -99,26 +99,11 @@ func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGrou
 
 func renderConfig(wr io.Writer, targetGroups map[string]*TargetGroup) {
 	const conf = `
-global:
-  scrape_interval:     15s
-  evaluation_interval: 15s
-
-scrape_configs:
-  # Prometheus itself
-  - job_name: 'prometheus'
-
-    target_groups:
-      - targets: ['localhost:9090']
-
-  # src
-  - job_name:       'src'
-    scrape_interval: 5s
-    target_groups:
 {{ range .TargetGroups }}
-      - targets: {{ marshal .Targets }}
-        labels:
+- targets: {{ marshal .Targets }}
+  labels:
 {{ range $labelKey, $labelValue := .Labels }}
-          {{ $labelKey }}: {{ $labelValue }}{{ end }}
+    {{ $labelKey }}: {{ $labelValue }}{{ end }}
 {{ end }}
 `
 	templateVars := struct {
@@ -134,7 +119,7 @@ scrape_configs:
 		},
 	}
 
-	t := template.Must(template.New("prometheus.yml").Funcs(funcMap).Parse(conf))
+	t := template.Must(template.New("target_groups.yml").Funcs(funcMap).Parse(conf))
 	t.Execute(wr, templateVars)
 }
 
