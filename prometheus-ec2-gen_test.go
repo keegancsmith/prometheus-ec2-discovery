@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -473,10 +472,9 @@ func TestGroupByAndRender(t *testing.T) {
     }
   }
 ]`
-	buf := &bytes.Buffer{}
 	targetGroups := groupByTags(instances, []string{"Type", "Deployment", "Version"})
-	renderConfig(buf, targetGroups)
-	got := string(buf.Bytes())
+	b := marshalTargetGroups(targetGroups)
+	got := string(b)
 	if want != got {
 		t.Fatalf("Did not get the expected output\nwant: %#v\ngot: %#v", want, got)
 	}

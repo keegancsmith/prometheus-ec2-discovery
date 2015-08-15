@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"sort"
@@ -43,7 +42,8 @@ func main() {
 
 	instances := flattenReservations(resp.Reservations)
 	targetGroups := groupByTags(instances, tags)
-	renderConfig(os.Stdout, targetGroups)
+	b := marshalTargetGroups(targetGroups)
+	os.Stdout.Write(b)
 }
 
 func initFlags() {
@@ -97,7 +97,7 @@ func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGrou
 	return targetGroups
 }
 
-func renderConfig(wr io.Writer, targetGroups map[string]*TargetGroup) {
+func marshalTargetGroups(targetGroups map[string]*TargetGroup) []byte {
 	// We need to transform targetGroups into a values list sorted by key
 	tgList := []*TargetGroup{}
 	keys := []string{}
@@ -113,10 +113,7 @@ func renderConfig(wr io.Writer, targetGroups map[string]*TargetGroup) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = wr.Write(b)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return b
 }
 
 func getTag(instance ec2.Instance, key string) string {
