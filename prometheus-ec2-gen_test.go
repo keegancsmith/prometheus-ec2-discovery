@@ -411,44 +411,68 @@ func TestGroupByAndRender(t *testing.T) {
 		},
 	}
 
-	want := `
-
-- targets: ["172.22.2.57:0","172.22.1.89:0"]
-  labels:
-
-    Deployment: next-production
-    Type: frontend
-    Version: 0.6.16
-
-- targets: ["172.22.1.149:0","172.22.2.151:0"]
-  labels:
-
-    Deployment: www-production
-    Type: frontend
-    Version: 0.6.16
-
-- targets: ["172.22.1.154:0","172.22.2.150:0"]
-  labels:
-
-    Deployment: www-production
-    Type: frontend
-    Version: 0.6.18
-
-- targets: ["172.22.2.183:0","172.22.1.121:0"]
-  labels:
-
-    Deployment: next-production
-    Type: work
-    Version: 0.6.16
-
-- targets: ["172.22.2.245:0","172.22.2.246:0","172.22.2.247:0","172.22.2.248:0","172.22.2.249:0","172.22.1.64:0","172.22.1.62:0"]
-  labels:
-
-    Deployment: www-production
-    Type: work
-    Version: 0.6.16
-
-`
+	want := `[
+  {
+    "targets": [
+      "172.22.2.57:0",
+      "172.22.1.89:0"
+    ],
+    "labels": {
+      "Deployment": "next-production",
+      "Type": "frontend",
+      "Version": "0.6.16"
+    }
+  },
+  {
+    "targets": [
+      "172.22.1.149:0",
+      "172.22.2.151:0"
+    ],
+    "labels": {
+      "Deployment": "www-production",
+      "Type": "frontend",
+      "Version": "0.6.16"
+    }
+  },
+  {
+    "targets": [
+      "172.22.1.154:0",
+      "172.22.2.150:0"
+    ],
+    "labels": {
+      "Deployment": "www-production",
+      "Type": "frontend",
+      "Version": "0.6.18"
+    }
+  },
+  {
+    "targets": [
+      "172.22.2.183:0",
+      "172.22.1.121:0"
+    ],
+    "labels": {
+      "Deployment": "next-production",
+      "Type": "work",
+      "Version": "0.6.16"
+    }
+  },
+  {
+    "targets": [
+      "172.22.2.245:0",
+      "172.22.2.246:0",
+      "172.22.2.247:0",
+      "172.22.2.248:0",
+      "172.22.2.249:0",
+      "172.22.1.64:0",
+      "172.22.1.62:0"
+    ],
+    "labels": {
+      "Deployment": "www-production",
+      "Type": "work",
+      "Version": "0.6.16"
+    }
+  }
+]`
 	buf := &bytes.Buffer{}
 	targetGroups := groupByTags(instances, []string{"Type", "Deployment", "Version"})
 	renderConfig(buf, targetGroups)

@@ -7,8 +7,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"sort"
 	"strings"
-	"text/template"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
@@ -22,8 +22,8 @@ var (
 
 // TargetGroup is a collection of related hosts that prometheus monitors
 type TargetGroup struct {
-	Labels  map[string]string
-	Targets []string
+	Targets []string          `json:"targets"`
+	Labels  map[string]string `json:"labels"`
 }
 
 func main() {
@@ -98,29 +98,25 @@ func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGrou
 }
 
 func renderConfig(wr io.Writer, targetGroups map[string]*TargetGroup) {
-	const conf = `
-{{ range .TargetGroups }}
-- targets: {{ marshal .Targets }}
-  labels:
-{{ range $labelKey, $labelValue := .Labels }}
-    {{ $labelKey }}: {{ $labelValue }}{{ end }}
-{{ end }}
-`
-	templateVars := struct {
-		TargetGroups map[string]*TargetGroup
-	}{
-		TargetGroups: targetGroups,
+	// We need to transform targetGroups into a values list sorted by key
+	tgList := []*TargetGroup{}
+	keys := []string{}
+	for k, _ := range targetGroups {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		tgList = append(tgList, targetGroups[k])
 	}
 
-	funcMap := template.FuncMap{
-		"marshal": func(v interface{}) string {
-			b, _ := json.Marshal(v)
-			return string(b)
-		},
+	b, err := json.MarshalIndent(tgList, "", "  ")
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	t := template.Must(template.New("target_groups.yml").Funcs(funcMap).Parse(conf))
-	t.Execute(wr, templateVars)
+	_, err = wr.Write(b)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func getTag(instance ec2.Instance, key string) string {
