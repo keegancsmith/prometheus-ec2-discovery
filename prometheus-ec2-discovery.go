@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
@@ -16,9 +17,10 @@ import (
 
 var (
 	dest   string
-	tags   []string
-	region aws.Region
 	port   int
+	region aws.Region
+	sleep  time.Duration
+	tags   []string
 )
 
 // TargetGroup is a collection of related hosts that prometheus monitors
@@ -40,25 +42,34 @@ func main() {
 		log.Fatal(err)
 	}
 	e := ec2.New(auth, region)
-	resp, err := e.Instances(nil, filter)
-	if err != nil {
-		log.Fatal(err)
-	}
-	instances := flattenReservations(resp.Reservations)
 
-	if len(tags) == 0 {
-		tags = allTagKeys(instances)
-	}
+	for {
+		resp, err := e.Instances(nil, filter)
+		if err != nil {
+			log.Fatal(err)
+		}
+		instances := flattenReservations(resp.Reservations)
 
-	targetGroups := groupByTags(instances, tags)
-	b := marshalTargetGroups(targetGroups)
-	if dest == "-" {
-		_, err = os.Stdout.Write(b)
-	} else {
-		err = atomicWriteFile(dest, b, ".new")
-	}
-	if err != nil {
-		log.Fatal(err)
+		if len(tags) == 0 {
+			tags = allTagKeys(instances)
+		}
+
+		targetGroups := groupByTags(instances, tags)
+		b := marshalTargetGroups(targetGroups)
+		if dest == "-" {
+			_, err = os.Stdout.Write(b)
+		} else {
+			err = atomicWriteFile(dest, b, ".new")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if sleep == 0 {
+			break
+		} else {
+			time.Sleep(sleep)
+		}
 	}
 }
 
@@ -68,10 +79,11 @@ func initFlags() {
 		regionRaw string
 	)
 
-	flag.StringVar(&dest, "dest", "-", "File to write the target group JSON. (e.g. `tgroups/target_groups.json`)")
-	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`)")
-	flag.StringVar(&regionRaw, "region", "us-west-2", "AWS region to query")
+	flag.DurationVar(&sleep, "sleep", 0, "Amount of time between regenerating the target_group.json. If 0, terminate after the first generation")
 	flag.IntVar(&port, "port", 80, "Port that is exposing /metrics")
+	flag.StringVar(&dest, "dest", "-", "File to write the target group JSON. (e.g. `tgroups/target_groups.json`)")
+	flag.StringVar(&regionRaw, "region", "us-west-2", "AWS region to query")
+	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`)")
 
 	flag.Parse()
 	tags = strings.Split(tagsRaw, ",")
