@@ -1,0 +1,6 @@
+Dockerfile
+.dockerignore
+.git
+.gitignore
+prometheus-ec2-discovery_test.go
+README.md
