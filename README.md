@@ -70,4 +70,11 @@ All Tags
 If you specify empty `--tags=`, then all tags are used.
 
 
+Docker
+------
+
+```
+$ docker run --rm -e AWS_SECRET_ACCESS_KEY -e AWS_ACCESS_KEY keegancsmith/prometheus-ec2-discovery
+```
+
 [1]: http://prometheus.io/blog/2015/06/01/advanced-service-discovery/#custom-service-discovery "Custom Service Discovery"
