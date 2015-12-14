@@ -488,3 +488,27 @@ func TestAllTagKeys(t *testing.T) {
 		t.Fatalf("%#v != %#v", want, got)
 	}
 }
+
+func TestParseTags(t *testing.T) {
+	tagKey := func(name string) Tag {
+		return Tag{
+			Key:         name,
+			FilterName:  "tag-key",
+			FilterValue: name,
+		}
+	}
+	cases := []struct {
+		tagsRaw string
+		want    Tags
+	}{
+		{"", Tags{}},
+		{"Name", Tags{tagKey("Name")}},
+		{"Name,App", Tags{tagKey("Name"), tagKey("App")}},
+	}
+	for _, c := range cases {
+		got := parseTags(c.tagsRaw)
+		if !reflect.DeepEqual(c.want, got) {
+			t.Errorf("parseTags(%#v) = %#v != %#v", c.tagsRaw, c.want, got)
+		}
+	}
+}

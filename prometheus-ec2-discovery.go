@@ -20,7 +20,7 @@ var (
 	port   int
 	region aws.Region
 	sleep  time.Duration
-	tags   []string
+	tags   Tags
 )
 
 // TargetGroup is a collection of related hosts that prometheus monitors
@@ -29,12 +29,19 @@ type TargetGroup struct {
 	Labels  map[string]string `json:"labels"`
 }
 
+type Tag struct {
+	Key         string
+	FilterName  string
+	FilterValue string
+}
+type Tags []Tag
+
 func main() {
 	initFlags()
 
 	filter := ec2.NewFilter()
 	for _, t := range tags {
-		filter.Add("tag-key", t)
+		filter.Add(t.FilterName, t.FilterValue)
 	}
 
 	auth, err := aws.EnvAuth()
@@ -50,11 +57,12 @@ func main() {
 		}
 		instances := flattenReservations(resp.Reservations)
 
-		if len(tags) == 0 {
-			tags = allTagKeys(instances)
+		tagKeys := tags.Keys()
+		if len(tagKeys) == 0 {
+			tagKeys = allTagKeys(instances)
 		}
 
-		targetGroups := groupByTags(instances, tags)
+		targetGroups := groupByTags(instances, tagKeys)
 		b := marshalTargetGroups(targetGroups)
 		if dest == "-" {
 			_, err = os.Stdout.Write(b)
@@ -86,12 +94,8 @@ func initFlags() {
 	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`)")
 
 	flag.Parse()
-	tags = strings.Split(tagsRaw, ",")
+	tags = parseTags(tagsRaw)
 	region = aws.Regions[regionRaw]
-
-	if tags[0] == "" && len(tags) == 1 {
-		tags = []string{}
-	}
 }
 
 func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGroup {
@@ -176,6 +180,34 @@ func flattenReservations(reservations []ec2.Reservation) []ec2.Instance {
 		instances = append(instances, r.Instances...)
 	}
 	return instances
+}
+
+func parseTags(tagsRaw string) Tags {
+	fields := strings.Split(tagsRaw, ",")
+	if fields[0] == "" && len(fields) == 1 {
+		return Tags{}
+	}
+	tags := make(Tags, len(fields))
+	for i, t := range fields {
+		tags[i] = Tag{
+			Key:         t,
+			FilterName:  "tag-key",
+			FilterValue: t,
+		}
+	}
+	return tags
+}
+
+func (tags Tags) Keys() []string {
+	seen := map[string]bool{}
+	keys := []string{}
+	for _, t := range tags {
+		if !seen[t.Key] {
+			seen[t.Key] = true
+			keys = append(keys, t.Key)
+		}
+	}
+	return keys
 }
 
 func allTagKeys(instances []ec2.Instance) []string {
