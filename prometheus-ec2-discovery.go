@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/ec2"
 )
 
 var (
@@ -51,7 +51,7 @@ func main() {
 	e := ec2.New(auth, region)
 
 	for {
-		resp, err := e.Instances(nil, filter)
+		resp, err := e.DescribeInstances(nil, filter)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -127,7 +127,7 @@ func groupByTags(instances []ec2.Instance, tags []string) map[string]*TargetGrou
 			targetGroups[key] = targetGroup
 		}
 
-		target := fmt.Sprintf("%s:%d", instance.PrivateIpAddress, port)
+		target := fmt.Sprintf("%s:%d", instance.PrivateIPAddress, port)
 		targetGroup.Targets = append(targetGroup.Targets, target)
 	}
 

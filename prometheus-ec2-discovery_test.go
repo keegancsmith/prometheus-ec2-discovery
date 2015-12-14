@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/mitchellh/goamz/ec2"
+	"github.com/goamz/goamz/ec2"
 )
 
 var instances []ec2.Instance = []ec2.Instance{
