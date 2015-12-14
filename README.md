@@ -35,6 +35,22 @@ This generates to stdout all ec2 instances with either the `Type` or
 are the `PrivateIpAddress` and that you must ensure prometheus is in the
 correct security groups to access the instances.
 
+You can also filter on the tag value
+
+```
+$ prometheus-ec2-discovery --port 9100 --tags=Type=backend,Deployment
+[
+  {
+    "targets": ["172.22.1.121:9100"],
+    "labels": {"Deployment": "staging", "Type": "backend"}
+  },
+  {
+    "targets": ["172.22.2.245:9100", "172.22.2.248:9100"],
+    "labels": {"Deployment": "production", "Type": "backend"}
+  }
+]
+```
+
 Install
 -------
 

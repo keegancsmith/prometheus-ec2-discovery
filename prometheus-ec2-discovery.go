@@ -91,7 +91,7 @@ func initFlags() {
 	flag.IntVar(&port, "port", 80, "Port that is exposing /metrics")
 	flag.StringVar(&dest, "dest", "-", "File to write the target group JSON. (e.g. `tgroups/target_groups.json`)")
 	flag.StringVar(&regionRaw, "region", "us-west-2", "AWS region to query")
-	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`)")
+	flag.StringVar(&tagsRaw, "tags", "Name", "Comma seperated list of tags to group by (e.g. `Environment,Application`). You can also filter by tag value (e.g. `Application,Envionment=Production`)")
 
 	flag.Parse()
 	tags = parseTags(tagsRaw)
@@ -189,10 +189,22 @@ func parseTags(tagsRaw string) Tags {
 	}
 	tags := make(Tags, len(fields))
 	for i, t := range fields {
-		tags[i] = Tag{
-			Key:         t,
-			FilterName:  "tag-key",
-			FilterValue: t,
+		parts := strings.Split(t, "=")
+		switch len(parts) {
+		case 1:
+			tags[i] = Tag{
+				Key:         t,
+				FilterName:  "tag-key",
+				FilterValue: t,
+			}
+		case 2:
+			tags[i] = Tag{
+				Key:         parts[0],
+				FilterName:  "tag:" + parts[0],
+				FilterValue: parts[1],
+			}
+		default:
+			log.Fatalf("Unrecognized tag filter %v", t)
 		}
 	}
 	return tags

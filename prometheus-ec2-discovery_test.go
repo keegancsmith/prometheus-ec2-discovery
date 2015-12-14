@@ -497,6 +497,13 @@ func TestParseTags(t *testing.T) {
 			FilterValue: name,
 		}
 	}
+	tagKeyVal := func(name, val string) Tag {
+		return Tag{
+			Key:         name,
+			FilterName:  "tag:" + name,
+			FilterValue: val,
+		}
+	}
 	cases := []struct {
 		tagsRaw string
 		want    Tags
@@ -504,6 +511,8 @@ func TestParseTags(t *testing.T) {
 		{"", Tags{}},
 		{"Name", Tags{tagKey("Name")}},
 		{"Name,App", Tags{tagKey("Name"), tagKey("App")}},
+		{"Name,App=foo", Tags{tagKey("Name"), tagKeyVal("App", "foo")}},
+		{"Name,App=foo,App=bar", Tags{tagKey("Name"), tagKeyVal("App", "foo"), tagKeyVal("App", "bar")}},
 	}
 	for _, c := range cases {
 		got := parseTags(c.tagsRaw)
