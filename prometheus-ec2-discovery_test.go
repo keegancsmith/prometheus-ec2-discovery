@@ -7,7 +7,7 @@ import (
 	"github.com/goamz/goamz/ec2"
 )
 
-var instances []ec2.Instance = []ec2.Instance{
+var instances = []ec2.Instance{
 	ec2.Instance{
 		State: ec2.InstanceState{
 			Code: 16,
@@ -31,7 +31,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "work",
 			},
 		},
-		PrivateIpAddress: "172.22.2.183",
+		PrivateIPAddress: "172.22.2.183",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -56,7 +56,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "www-production",
 			},
 		},
-		PrivateIpAddress: "",
+		PrivateIPAddress: "",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -81,7 +81,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "next-production",
 			},
 		},
-		PrivateIpAddress: "172.22.2.57",
+		PrivateIPAddress: "172.22.2.57",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -106,7 +106,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "0.6.16",
 			},
 		},
-		PrivateIpAddress: "172.22.1.121",
+		PrivateIPAddress: "172.22.1.121",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -131,7 +131,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "0.6.16",
 			},
 		},
-		PrivateIpAddress: "172.22.1.149",
+		PrivateIPAddress: "172.22.1.149",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -156,7 +156,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "www-production",
 			},
 		},
-		PrivateIpAddress: "172.22.1.154",
+		PrivateIPAddress: "172.22.1.154",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -181,7 +181,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "next-production-0.6.16-frontend",
 			},
 		},
-		PrivateIpAddress: "172.22.1.89",
+		PrivateIPAddress: "172.22.1.89",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -206,7 +206,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "www-production-0.6.16-frontend",
 			},
 		},
-		PrivateIpAddress: "172.22.2.151",
+		PrivateIPAddress: "172.22.2.151",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -231,7 +231,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "work",
 			},
 		},
-		PrivateIpAddress: "172.22.2.245",
+		PrivateIPAddress: "172.22.2.245",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -256,7 +256,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "0.6.16",
 			},
 		},
-		PrivateIpAddress: "172.22.2.246",
+		PrivateIPAddress: "172.22.2.246",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -281,7 +281,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "work",
 			},
 		},
-		PrivateIpAddress: "172.22.2.247",
+		PrivateIPAddress: "172.22.2.247",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -306,7 +306,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "0.6.16",
 			},
 		},
-		PrivateIpAddress: "172.22.2.248",
+		PrivateIPAddress: "172.22.2.248",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -331,7 +331,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "work",
 			},
 		},
-		PrivateIpAddress: "172.22.2.249",
+		PrivateIPAddress: "172.22.2.249",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -356,7 +356,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "www-production",
 			},
 		},
-		PrivateIpAddress: "172.22.1.64",
+		PrivateIPAddress: "172.22.1.64",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -381,7 +381,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "www-production-0.6.16-work",
 			},
 		},
-		PrivateIpAddress: "172.22.1.62",
+		PrivateIPAddress: "172.22.1.62",
 	},
 	ec2.Instance{
 		State: ec2.InstanceState{
@@ -406,7 +406,7 @@ var instances []ec2.Instance = []ec2.Instance{
 				Value: "www-production",
 			},
 		},
-		PrivateIpAddress: "172.22.2.150",
+		PrivateIPAddress: "172.22.2.150",
 	},
 }
 
